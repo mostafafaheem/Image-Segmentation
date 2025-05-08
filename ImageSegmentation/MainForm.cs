@@ -35,8 +35,32 @@ namespace ImageTemplate
         {
             double sigma = double.Parse(txtGaussSigma.Text);
             int maskSize = (int)nudMaskSize.Value ;
-            ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
-            ImageOperations.DisplayImage(ImageMatrix, pictureBox2);
+            
+            int height = ImageMatrix.GetLength(0),
+                width = ImageMatrix.GetLength(1),
+                numVertices = width * height;
+            
+            // El blurring beybawaz el segments fel sample test cases
+            // ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, 0.8);
+            
+            List<Edge> redGraph = DSConstruction.ConstructEightNeighbourGraph(ImageMatrix, 'r'),
+                       greenGraph = DSConstruction.ConstructEightNeighbourGraph(ImageMatrix, 'g'),
+                       blueGraph = DSConstruction.ConstructEightNeighbourGraph(ImageMatrix, 'b');
+            DisjointSet[] channelMSTs = new DisjointSet[3];
+            
+            channelMSTs[0] = DSConstruction.ConstructMST(redGraph, numVertices, (float)sigma);
+            channelMSTs[1] = DSConstruction.ConstructMST(greenGraph, numVertices, (float)sigma);
+            channelMSTs[2] = DSConstruction.ConstructMST(blueGraph, numVertices, (float)sigma);
+
+            DisjointSet segmentedSet = Segmentation.CreateSegments(channelMSTs, numVertices);
+            
+            int numSegments = channelMSTs[0].GetNumSets();
+            RGBPixel[,] displayGrid = Visualization.VisualizeSegments(segmentedSet, width, height);
+
+            ImageOperations.DisplayImage(displayGrid, pictureBox2);
+
+            //MessageBox.Show($"Total segments created: {numSegments}", "Debug Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
         }
 
         private void MainForm_Load(object sender, EventArgs e)
