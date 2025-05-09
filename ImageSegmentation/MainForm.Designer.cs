@@ -264,7 +264,7 @@ namespace ImageTemplate
             this.Controls.Add(this.btnOpen);
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "MainForm";
-            this.Text = "Image Enctryption and Compression...";
+            this.Text = "Image Segmentation";
             this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
