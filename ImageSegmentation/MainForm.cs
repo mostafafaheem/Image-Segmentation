@@ -54,12 +54,12 @@ namespace ImageTemplate
 
             DisjointSet segmentedSet = Segmentation.CreateSegments(channelMSTs, numVertices);
             
-            int numSegments = channelMSTs[0].GetNumSets();
+            int numSegments = segmentedSet.GetNumSets();
             RGBPixel[,] displayGrid = Visualization.VisualizeSegments(segmentedSet, width, height);
 
             ImageOperations.DisplayImage(displayGrid, pictureBox2);
 
-            //MessageBox.Show($"Total segments created: {numSegments}", "Debug Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show($"Total segments created: {numSegments}", "Debug Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         }
 
