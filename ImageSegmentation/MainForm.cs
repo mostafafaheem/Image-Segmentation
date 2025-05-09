@@ -41,7 +41,7 @@ namespace ImageTemplate
                 numVertices = width * height;
             
             // El blurring beybawaz el segments fel sample test cases
-            // ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, 0.8);
+            ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, 0.8);
             
             List<Edge> redGraph = DSConstruction.ConstructEightNeighbourGraph(ImageMatrix, 'r'),
                        greenGraph = DSConstruction.ConstructEightNeighbourGraph(ImageMatrix, 'g'),
