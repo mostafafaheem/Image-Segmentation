@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Diagnostics;
 using System.Windows.Forms.VisualStyles;
+using System.IO;
 ///Algorithms Project
 ///Intelligent Scissors
 ///
@@ -443,6 +444,43 @@ namespace ImageTemplate
                 }
             }
             return result;
+        }
+
+        public static void WriteSegmentSizesToFile(string path, DisjointSet dsu, int height, int width)
+        {
+            try
+            {
+                int n = height * width;
+                Dictionary<int, int> segmentSizes = new Dictionary<int, int>();
+
+                //count pixels in each component
+                for (int idx = 0; idx < n; idx++)
+                {
+                    int root = dsu.Find(idx);
+                    if (!segmentSizes.ContainsKey(root))
+                        segmentSizes[root] = 0;
+                    segmentSizes[root]++;
+                }
+
+                //sort descending by size 
+                var sorted = segmentSizes.Values.OrderByDescending(size => size).ToList();
+
+                //write to file
+                using (StreamWriter sw = new StreamWriter(path))
+                {
+                    sw.WriteLine(sorted.Count); //line 1: number of segments
+                    foreach (var size in sorted)
+                    {
+                        sw.WriteLine(size);
+                    }
+                }
+            }
+            //open the File
+            //System.Diagnostics.Process.Start("notepad.exe", path);
+            catch (Exception e)
+            {
+                MessageBox.Show($"Error writing to file:\n{e.Message}");
+            }
         }
     }
 
