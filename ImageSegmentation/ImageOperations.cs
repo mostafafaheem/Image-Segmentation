@@ -347,6 +347,7 @@ namespace ImageTemplate
                         internalDiff[setA] + k / mstSet.GetSize(setA),
                         internalDiff[setB] + k / mstSet.GetSize(setB)
                     );
+                    
                     if (edge.Weight <= threshold)
                     {
                         int newSet = mstSet.Union(setA, setB);
@@ -377,28 +378,47 @@ namespace ImageTemplate
         /// <param name="channelSets">Array of MSTs, one for each colour channel</param>
         /// <param name="numVertices">Total number of pixels</param>
         /// <returns>final segmented MST</returns>
-        public static DisjointSet CreateSegments(DisjointSet[] channelSets, int numVertices)
+        public static DisjointSet CreateSegments(DisjointSet[] channelSets, int numVertices, int height, int width)
         {
             DisjointSet segmentSet = new DisjointSet(numVertices);
-            Dictionary<string, int> representativeMap = new Dictionary<string, int>();
 
-            for (int j = 0; j < numVertices; j++)
+            for (int y = 0; y < height; y++)
             {
-                int redComponent = channelSets[0].Find(j);
-                int greenComponent = channelSets[1].Find(j);
-                int blueComponent = channelSets[2].Find(j);
-
-                string componentKey = $"{redComponent}_{greenComponent}_{blueComponent}";
-
-                if (!representativeMap.ContainsKey(componentKey))
+                for (int x = 0; x < width; x++)
                 {
-                    representativeMap[componentKey] = j;
-                }
-                else
-                {
-                    segmentSet.Union(j, representativeMap[componentKey]);
+                    int v1 = y * width + x;
+
+                    int redComponent = channelSets[0].Find(v1);
+                    int greenComponent = channelSets[1].Find(v1);
+                    int blueComponent = channelSets[2].Find(v1);
+
+                    // 8-connected neighbors
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        for (int dx = -1; dx <= 1; dx++)
+                        {
+                            if (dy == 0 && dx == 0) continue;
+
+                            int ny = y + dy;
+                            int nx = x + dx;
+
+                            if (ny < 0 || ny >= height || nx < 0 || nx >= width) continue;
+
+                            int v2 = ny * width + nx;
+
+                            int r2 = channelSets[0].Find(v2);
+                            int g2 = channelSets[1].Find(v2);
+                            int b2 = channelSets[2].Find(v2);
+
+                            if (redComponent == r2 && greenComponent == g2 && blueComponent == b2)
+                            {
+                                segmentSet.Union(v1, v2);
+                            }
+                        }
+                    }
                 }
             }
+
             return segmentSet;
         }
     }
