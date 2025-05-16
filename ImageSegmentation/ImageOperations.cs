@@ -10,6 +10,7 @@ using System.Linq;
 using System.Diagnostics;
 using System.Windows.Forms.VisualStyles;
 using System.IO;
+using System.Buffers;
 ///Algorithms Project
 ///Intelligent Scissors
 ///
@@ -252,71 +253,103 @@ namespace ImageTemplate
 
     }
 
-    public class Edge : IComparable<Edge>
+    public struct Edge
     {
-        public int From { get; set; }
-        public int To { get; set; }
-        public float Weight { get; set; }
+        public int v1;
+        public int v2;
+        public double weight;
 
-        public int CompareTo(Edge other)
+        public Edge(int v1, int v2, double weight)
         {
-            return Weight.CompareTo(other.Weight);
+            this.v1 = v1;
+            this.v2 = v2;
+            this.weight = weight;
         }
     }
 
     public class DSConstruction
-{       
+    {
         /// <summary>
         /// Construct an eight-neighbour graph for the given image and the selected channel 
         /// </summary>
         /// <param name="ImageMatrix">Colored image matrix</param>
         /// <param name="colour">Gaussian mask size</param>
         /// <returns>edge list</returns>
-        public static List<Edge> ConstructEightNeighbourGraph(RGBPixel[,] ImageMatrix, char colour)
+        public static (List<Edge> redGraph, List<Edge> greenGraph, List<Edge> blueGraph, int[,] finalLabels) BuildGraph(int height, int width, RGBPixel[,] imageMatrix)
         {
-            List<Edge> edges = new List<Edge>();
 
-            int[,] adjacentPixels = new int[,] {
-                { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, -1 }
-            };
 
-            Func<RGBPixel, byte> getChannel;
-            switch (colour)
-            {
-                case 'r': getChannel = p => p.red; break;
-                case 'g': getChannel = p => p.green; break;
-                case 'b': getChannel = p => p.blue; break;
-                default: throw new ArgumentException("Invalid color parameter. Must be 'r', 'g', or 'b'.", nameof(colour));
-            }
+            int maxEdges = height * width * 4;
 
-            int height = ImageMatrix.GetLength(0),
-                width = ImageMatrix.GetLength(1),
-                neighbourCnt = adjacentPixels.GetLength(0);
+
+            Edge[] redEdges = ArrayPool<Edge>.Shared.Rent(maxEdges);
+            Edge[] greenEdges = ArrayPool<Edge>.Shared.Rent(maxEdges);
+            Edge[] blueEdges = ArrayPool<Edge>.Shared.Rent(maxEdges);
+            int[,] finalLabels = new int[height, width];
+
+            int edgeCount = 0;
+
+
 
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    int from = y * width + x;
-                    byte fromValue = getChannel(ImageMatrix[y, x]);
+                    int v1 = y * width + x;
+                    RGBPixel current = imageMatrix[y, x];
+                    finalLabels[y, x] = -1;
 
-                    for (int d = 0; d < neighbourCnt; d++)
+                    for (int dy = -1; dy <= 1; dy++)
                     {
-                        int ny = y + adjacentPixels[d, 0];
-                        int nx = x + adjacentPixels[d, 1];
+                        for (int dx = -1; dx <= 1; dx++)
+                        {
+                            if (dy == 0 && dx == 0)
+                                continue;
 
-                        if (ny < 0 || ny >= height || nx < 0 || nx >= width)
-                            continue;
+                            int nx = x + dx;
+                            int ny = y + dy;
 
-                        int to = ny * width + nx;
-                        byte toValue = getChannel(ImageMatrix[ny, nx]);
-                        float weight = Math.Abs(fromValue - toValue);
+                            if (nx < 0 || nx >= width || ny < 0 || ny >= height)
+                                continue;
 
-                        edges.Add(new Edge { From = from, To = to, Weight = weight });
+                            int v2 = ny * width + nx;
+                            if (v1 < v2)
+                            {
+                                RGBPixel neighbor = imageMatrix[ny, nx];
+                                double weightR = Math.Abs(current.red - neighbor.red);
+                                double weightG = Math.Abs(current.green - neighbor.green);
+                                double weightB = Math.Abs(current.blue - neighbor.blue);
+
+                                redEdges[edgeCount] = new Edge(v1, v2, weightR);
+                                greenEdges[edgeCount] = new Edge(v1, v2, weightG);
+                                blueEdges[edgeCount] = new Edge(v1, v2, weightB);
+                                edgeCount++;
+                            }
+                        }
                     }
                 }
             }
-            return edges;
+
+
+            List<Edge> redGraph = new List<Edge>(edgeCount);
+            List<Edge> greenGraph = new List<Edge>(edgeCount);
+            List<Edge> blueGraph = new List<Edge>(edgeCount);
+
+            for (int i = 0; i < edgeCount; i++)
+            {
+                redGraph.Add(redEdges[i]);
+                greenGraph.Add(greenEdges[i]);
+                blueGraph.Add(blueEdges[i]);
+            }
+            ArrayPool<Edge>.Shared.Return(redEdges);
+            ArrayPool<Edge>.Shared.Return(greenEdges);
+            ArrayPool<Edge>.Shared.Return(blueEdges);
+            return (redGraph, greenGraph, blueGraph, finalLabels);
+
+
+
+
+
         }
 
         /// <summary>
@@ -326,47 +359,44 @@ namespace ImageTemplate
         /// <param name="numVertices">Total number of pixels</param>
         /// <param name="k">Threshold constant</param>
         /// <returns>minimum Spanning Tree</returns>
-        public static DisjointSet ConstructMST(List<Edge> allEdges, int numVertices, float k)
+        public static DisjointSet SegmentGraph(List<Edge> graph, int height, int width, double k)
         {
+            int n = height * width;
+            DisjointSet ds = new DisjointSet(n);
 
-            allEdges.Sort((a, b) => a.Weight.CompareTo(b.Weight));
 
-            DisjointSet mstSet = new DisjointSet(numVertices);
-            
-            float[] internalDiff = new float[numVertices];
-            for (int i = 0; i < numVertices; i++)
-                internalDiff[i] = 0;
+            graph.Sort((e1, e2) => e1.weight.CompareTo(e2.weight));
 
-            foreach (Edge edge in allEdges)
+
+            foreach (var edge in graph)
             {
-                int setA = mstSet.Find(edge.From);
-                int setB = mstSet.Find(edge.To);
+                int v1 = edge.v1;
+                int v2 = edge.v2;
+                double w = edge.weight;
 
-                if (setA != setB)
+                int root1 = ds.Find(v1);
+                int root2 = ds.Find(v2);
+
+                if (root1 != root2)
                 {
-                    float threshold = Math.Min(
-                        internalDiff[setA] + k / mstSet.GetSize(setA),
-                        internalDiff[setB] + k / mstSet.GetSize(setB)
-                    );
-                    if (edge.Weight <= threshold)
+                    double intC1 = ds.GetInternalDiff(v1);
+                    double intC2 = ds.GetInternalDiff(v2);
+                    int sizeC1 = ds.GetSize(v1);
+                    int sizeC2 = ds.GetSize(v2);
+
+                    double mInt = Math.Min(intC1 + k / (double)sizeC1, intC2 + k / (double)sizeC2);
+
+                    if (w <= mInt)
                     {
-                        int newSet = mstSet.Union(setA, setB);
-                        internalDiff[newSet] = edge.Weight;
+                        ds.Union(v1, v2, w);
+
                     }
                 }
             }
-            // Beyjoin el small components bas lesa not sure meno
-            //foreach (Edge edge in allEdges)
-            //{
-            //    int minSize = (int)k;
-            //    int a = mstSet.Find(edge.From);
-            //    int b = mstSet.Find(edge.To);
 
-            //    if (a != b && (mstSet.GetSize(a) < minSize || mstSet.GetSize(b) < minSize))
-            //        mstSet.Union(a, b);
-            //}
 
-            return mstSet;
+
+            return ds;
         }
     }
 
@@ -378,30 +408,103 @@ namespace ImageTemplate
         /// <param name="channelSets">Array of MSTs, one for each colour channel</param>
         /// <param name="numVertices">Total number of pixels</param>
         /// <returns>final segmented MST</returns>
-        public static DisjointSet CreateSegments(DisjointSet[] channelSets, int numVertices)
+        public static (int[,], Dictionary<int, int>, DisjointSet) CreateSegments(DisjointSet redSegment,
+     DisjointSet greenSegment,
+     DisjointSet blueSegment,
+     int height,
+     int width, int[,] finalLabels)
         {
-            DisjointSet segmentSet = new DisjointSet(numVertices);
-            Dictionary<string, int> representativeMap = new Dictionary<string, int>();
+            int n = height * width;
+            //int[,] finalLabels = new int[height, width];
 
-            for (int j = 0; j < numVertices; j++)
+
+            //for (int y = 0; y < height; y++)
+            //    for (int x = 0; x < width; x++)
+            //        finalLabels[y, x] = -1;
+            DisjointSet mergedSet = new DisjointSet(n);
+
+            Dictionary<int, int> mergedComponents = new Dictionary<int, int>();
+            int nextLabel = 0;
+
+            // optmize el height fe parellel for 
+            for (int y = 0; y < height; y++)
             {
-                int redComponent = channelSets[0].Find(j);
-                int greenComponent = channelSets[1].Find(j);
-                int blueComponent = channelSets[2].Find(j);
-
-                string componentKey = $"{redComponent}_{greenComponent}_{blueComponent}";
-
-                if (!representativeMap.ContainsKey(componentKey))
+                for (int x = 0; x < width; x++)
                 {
-                    representativeMap[componentKey] = j;
-                }
-                else
-                {
-                    segmentSet.Union(j, representativeMap[componentKey]);
+                    int pixelIndex = y * width + x;
+
+
+                    if (finalLabels[y, x] != -1)
+                        continue;
+
+
+                    finalLabels[y, x] = nextLabel;
+                    mergedComponents[nextLabel] = 1;
+
+
+                    Queue<(int, int)> queue = new Queue<(int, int)>();
+                    queue.Enqueue((x, y));
+
+                    while (queue.Count > 0)
+                    {
+                        var (curX, curY) = queue.Dequeue();
+                        int curIdx = curY * width + curX;
+
+
+                        for (int dy = -1; dy <= 1; dy++)
+                        {
+                            for (int dx = -1; dx <= 1; dx++)
+                            {
+                                if (dx == 0 && dy == 0)
+                                    continue;
+
+                                int nx = curX + dx;
+                                int ny = curY + dy;
+
+
+                                if (nx < 0 || ny < 0 || nx >= width || ny >= height || finalLabels[ny, nx] != -1)
+                                    continue;
+
+                                int neighborIdx = ny * width + nx;
+
+
+                                bool sameRed = redSegment.Find(curIdx) == redSegment.Find(neighborIdx);
+                                bool sameGreen = greenSegment.Find(curIdx) == greenSegment.Find(neighborIdx);
+                                bool sameBlue = blueSegment.Find(curIdx) == blueSegment.Find(neighborIdx);
+
+
+                                if (sameRed && sameGreen && sameBlue)
+                                {
+                                    finalLabels[ny, nx] = nextLabel;
+                                    mergedComponents[nextLabel]++;
+                                    queue.Enqueue((nx, ny));
+                                    mergedSet.Union(curIdx, neighborIdx, 0.0);
+                                }
+                            }
+                        }
+                    }
+
+                    nextLabel++;
                 }
             }
-            return segmentSet;
+
+            return (finalLabels, mergedComponents, mergedSet);
         }
+
+        public static void WriteOutputFile(int[,] finalLabels, Dictionary<int, int> regionSizes, string outputPath)
+        {
+            var sortedSizes = regionSizes.Values.OrderByDescending(size => size).ToList();
+            using (var writer = new System.IO.StreamWriter(outputPath))
+            {
+                writer.WriteLine(sortedSizes.Count); // Num
+                foreach (int size in sortedSizes)
+                {
+                    writer.WriteLine(size); // Size of each segment
+                }
+            }
+        }
+
+
     }
     public class Visualization
     {
@@ -446,122 +549,88 @@ namespace ImageTemplate
             return result;
         }
 
-        public static void WriteSegmentSizesToFile(string path, DisjointSet dsu, int height, int width)
-        {
-            try
-            {
-                int n = height * width;
-                Dictionary<int, int> segmentSizes = new Dictionary<int, int>();
-
-                //count pixels in each component
-                for (int idx = 0; idx < n; idx++)
-                {
-                    int root = dsu.Find(idx);
-                    if (!segmentSizes.ContainsKey(root))
-                        segmentSizes[root] = 0;
-                    segmentSizes[root]++;
-                }
-
-                //sort descending by size 
-                var sorted = segmentSizes.Values.OrderByDescending(size => size).ToList();
-
-                //write to file
-                using (StreamWriter sw = new StreamWriter(path))
-                {
-                    sw.WriteLine(sorted.Count); //line 1: number of segments
-                    foreach (var size in sorted)
-                    {
-                        sw.WriteLine(size);
-                    }
-                }
-            }
-            //open the File
-            //System.Diagnostics.Process.Start("notepad.exe", path);
-            catch (Exception e)
-            {
-                MessageBox.Show($"Error writing to file:\n{e.Message}");
-            }
-        }
+        
     }
 
     public class DisjointSet
     {
-        private int[] parent { get; set; }
-        private int[] rank { get; set; }
-        private int[] size { get; set; }
+        private int[] parent;
+        private int[] rank;
+        private int[] size;
+        private double[] internalDiff;
 
-        public DisjointSet(int size)
+        public DisjointSet(int n)
         {
-            parent = new int[size];
-            rank = new int[size];
-            this.size = new int[size];
+            parent = new int[n];
+            rank = new int[n];
+            size = new int[n];
+            internalDiff = new double[n];
 
-            for (int i = 0; i < size; i++)
+            for (int i = 0; i < n; i++)
             {
                 parent[i] = i;
                 rank[i] = 0;
-                this.size[i] = 1;
+                size[i] = 1;
+                internalDiff[i] = 0.0;
             }
         }
-        /// <summary>
-        /// Finds the set of a number 
-        /// </summary>
-        /// <param name="x">Number whose set is to be found</param>
-        /// <returns>set root</returns>
 
-        public int Find(int x)
+
+        public int Find(int u)
         {
-            if (parent[x] != x)
-                parent[x] = Find(parent[x]);
-            return parent[x];
-        }
-        /// <summary>
-        /// Joins 2 distinct set into one 
-        /// </summary>
-        /// <param name="x">Number in the 1st set to be joined</param>
-        /// <param name="y">Number in the 2nd set to be joined</param>
-        /// <returns>set root after union</returns>
-
-        public int Union(int x, int y)
-        {
-            int rootX = Find(x);
-            int rootY = Find(y);
-
-            if (rootX == rootY)
-                return rootX;
-
-            if (rank[rootX] < rank[rootY])
+            // mtnsash el half way compressing -* __ *-
+            if (u != parent[u])
             {
-                parent[rootX] = rootY;
-                size[rootY] += size[rootX];
-                return rootY;
+                parent[u] = Find(parent[u]);
             }
-            else if (rank[rootX] > rank[rootY])
+            return parent[u];
+        }
+
+
+        public void Union(int u, int v, double edgeWeight)
+        {
+            int rootU = Find(u);
+            int rootV = Find(v);
+
+            if (rootU == rootV) return;
+
+
+            if (rank[rootU] < rank[rootV])
             {
-                parent[rootY] = rootX;
-                size[rootX] += size[rootY];
-                return rootX;
+
+                parent[rootU] = rootV;
+                size[rootV] += size[rootU];
+                internalDiff[rootV] = Math.Max(internalDiff[rootV], Math.Max(internalDiff[rootU], edgeWeight));
+            }
+            else if (rank[rootV] < rank[rootU])
+            {
+
+                parent[rootV] = rootU;
+                size[rootU] += size[rootV];
+                internalDiff[rootU] = Math.Max(internalDiff[rootU], Math.Max(internalDiff[rootV], edgeWeight));
             }
             else
             {
-                parent[rootY] = rootX;
-                rank[rootX]++;
-                size[rootX] += size[rootY];
-                return rootX;
+
+                parent[rootV] = rootU;
+                rank[rootU]++;
+                size[rootU] += size[rootV];
+                internalDiff[rootU] = Math.Max(internalDiff[rootU], Math.Max(internalDiff[rootV], edgeWeight));
             }
         }
-        /// <summary>
-        /// Gets the size of a set 
-        /// </summary>
-        /// <param name="x">set member</param>
-        /// <returns>set size</returns>
 
-        public int GetSize(int x)
+
+        public int GetSize(int u)
         {
-            int root = Find(x);
-            return size[root];
+            return size[Find(u)];
         }
-       
+
+
+        public double GetInternalDiff(int u)
+        {
+            return internalDiff[Find(u)];
+        }
+
         /// <summary>
         /// Calculates the total number of sets 
         /// </summary>

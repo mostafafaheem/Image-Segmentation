@@ -2,12 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace ImageTemplate
 {
@@ -50,42 +52,34 @@ namespace ImageTemplate
         {
             double sigma = double.Parse(txtGaussSigma.Text);
             int maskSize = (int)nudMaskSize.Value;
-
-            int height = ImageMatrix.GetLength(0),
-                width = ImageMatrix.GetLength(1),
-                numVertices = width * height;
-
-            // El blurring beybawaz el segments fel sample test cases
-            // ImageMatrix = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, 0.8);
-
-            List<Edge> redGraph = DSConstruction.ConstructEightNeighbourGraph(ImageMatrix, 'r'),
-                       greenGraph = DSConstruction.ConstructEightNeighbourGraph(ImageMatrix, 'g'),
-                       blueGraph = DSConstruction.ConstructEightNeighbourGraph(ImageMatrix, 'b');
+            RGBPixel[,] Bluredimg = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
+            int height = ImageOperations.GetHeight(Bluredimg),
+                width = ImageOperations.GetWidth(Bluredimg);
             DisjointSet[] channelMSTs = new DisjointSet[3];
+            float k = float.Parse(textBox1.Text);
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
 
-            channelMSTs[0] = DSConstruction.ConstructMST(redGraph, numVertices, (float)sigma);
-            channelMSTs[1] = DSConstruction.ConstructMST(greenGraph, numVertices, (float)sigma);
-            channelMSTs[2] = DSConstruction.ConstructMST(blueGraph, numVertices, (float)sigma);
+            var (redGraph, greenGraph, blueGraph, finalLabels) = DSConstruction.BuildGraph(height, width, Bluredimg);
 
-            // Store the segmentedSet for use in click-to-merge
-            segmentedSet = Segmentation.CreateSegments(channelMSTs, numVertices);
 
-            int numSegments = segmentedSet.GetNumSets();
+            channelMSTs[0] = DSConstruction.SegmentGraph(redGraph, height, width, k);
+            channelMSTs[1] = DSConstruction.SegmentGraph(greenGraph, height, width, k);
+            channelMSTs[2] = DSConstruction.SegmentGraph(blueGraph, height, width, k);
 
-            // Store the segmented image
+            var (finallabels, dict, segmentedSet) = Segmentation.CreateSegments(channelMSTs[0], channelMSTs[1], channelMSTs[2], height, width, finalLabels);
+
             segmentedImage = Visualization.VisualizeSegments(segmentedSet, width, height);
-
-            // Write segment info to file
-            Visualization.WriteSegmentSizesToFile("test.txt", segmentedSet, height, width);
-
-            // Display the segmented image
+            stopwatch.Stop();
+            long time = stopwatch.ElapsedMilliseconds;
             ImageOperations.DisplayImage(segmentedImage, pictureBox2);
-
-            // Clear any previous selections
             selectedSegments.Clear();
             btnMerge.Visible = false;
+            Segmentation.WriteOutputFile(finallabels, dict, "C:\\Users\\Muhammedd\\Desktop\\esht8lyb2a.txt");
 
-            MessageBox.Show($"Total segments created: {numSegments}", "Debug Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            string elapsedTimeMessage = $"\n Time: {time} ";
+
+            MessageBox.Show(elapsedTimeMessage, "Debug Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void MainForm_Load(object sender, EventArgs e)
@@ -161,7 +155,7 @@ namespace ImageTemplate
             foreach (var segment in selectedSegments)
             {
                 if (segment == mergedSegment) continue;
-                segmentedSet.Union(mergedSegment, segment);
+                segmentedSet.Union(mergedSegment, segment,0.0);
             }
 
             //clear selection(highlight)

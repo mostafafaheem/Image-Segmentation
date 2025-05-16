@@ -1,21 +1,25 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\mosta\\OneDrive\\Desktop\\Semester 6\\Algos\\Project\\[TEMPLATE] ImageSegmentation\\",
+  "WorkspaceRootPath": "C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|c:\\users\\mosta\\onedrive\\desktop\\semester 6\\algos\\project\\[template] imagesegmentation\\imagesegmentation\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\imagesegmentation\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form",
+      "RelativeMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|solutionrelative:imagesegmentation\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}|Form"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\imagesegmentation\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|solutionrelative:imagesegmentation\\mainform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|c:\\users\\mosta\\onedrive\\desktop\\semester 6\\algos\\project\\[template] imagesegmentation\\imagesegmentation\\imageoperations.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|c:\\users\\muhammedd\\desktop\\final bgd bgd bgddddd\\image-segmentation\\imagesegmentation\\imageoperations.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|solutionrelative:imagesegmentation\\imageoperations.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|C:\\Users\\mosta\\OneDrive\\Desktop\\Semester 6\\Algos\\Project\\[TEMPLATE] ImageSegmentation\\imagesegmentation\\properties\\resources.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\imagesegmentation\\properties\\resources.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|solutionrelative:imagesegmentation\\properties\\resources.designer.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|C:\\Users\\mosta\\OneDrive\\Desktop\\Semester 6\\Algos\\Project\\[TEMPLATE] ImageSegmentation\\imagesegmentation\\properties\\assemblyinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\imagesegmentation\\properties\\assemblyinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7CA8077F-C27A-400D-B6C9-7737665499AC}|ImageSegmentation\\ImageSegmentation.csproj|solutionrelative:imagesegmentation\\properties\\assemblyinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -25,9 +29,13 @@
       "VerticalTabListWidth": 256,
       "DocumentGroups": [
         {
-          "DockedWidth": 200,
+          "DockedWidth": 215,
           "SelectedChildIndex": 7,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
@@ -53,60 +61,80 @@
               "Name": "ST:131:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
             },
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "MainForm.cs [Design]",
+              "DocumentMoniker": "C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\ImageSegmentation\\MainForm.cs",
+              "RelativeDocumentMoniker": "ImageSegmentation\\MainForm.cs",
+              "ToolTip": "C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\ImageSegmentation\\MainForm.cs [Design]",
+              "RelativeToolTip": "ImageSegmentation\\MainForm.cs [Design]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-14T21:00:02.167Z",
+              "EditorCaption": " [Design]"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "MainForm.cs",
-              "DocumentMoniker": "C:\\Users\\mosta\\OneDrive\\Desktop\\Semester 6\\Algos\\Project\\[TEMPLATE] ImageSegmentation\\ImageSegmentation\\MainForm.cs",
+              "DocumentMoniker": "C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\ImageSegmentation\\MainForm.cs",
               "RelativeDocumentMoniker": "ImageSegmentation\\MainForm.cs",
-              "ToolTip": "C:\\Users\\mosta\\OneDrive\\Desktop\\Semester 6\\Algos\\Project\\[TEMPLATE] ImageSegmentation\\ImageSegmentation\\MainForm.cs",
+              "ToolTip": "C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\ImageSegmentation\\MainForm.cs",
               "RelativeToolTip": "ImageSegmentation\\MainForm.cs",
-              "ViewState": "AgIAACMAAAAAAAAAAADwvzMAAABPAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAJsAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-08T16:20:06.783Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "ImageOperations.cs",
-              "DocumentMoniker": "C:\\Users\\mosta\\OneDrive\\Desktop\\Semester 6\\Algos\\Project\\[TEMPLATE] ImageSegmentation\\ImageSegmentation\\ImageOperations.cs",
+              "DocumentMoniker": "C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\ImageSegmentation\\ImageOperations.cs",
               "RelativeDocumentMoniker": "ImageSegmentation\\ImageOperations.cs",
-              "ToolTip": "C:\\Users\\mosta\\OneDrive\\Desktop\\Semester 6\\Algos\\Project\\[TEMPLATE] ImageSegmentation\\ImageSegmentation\\ImageOperations.cs",
+              "ToolTip": "C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\ImageSegmentation\\ImageOperations.cs",
               "RelativeToolTip": "ImageSegmentation\\ImageOperations.cs",
-              "ViewState": "AgIAANkBAAAAAAAAAAA6wOEBAAAWAAAAAAAAAA==",
+              "ViewState": "AgIAACYCAAAAAAAAAAApwE0CAAAUAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-05-08T06:14:24.038Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "Resources.Designer.cs",
-              "DocumentMoniker": "C:\\Users\\mosta\\OneDrive\\Desktop\\Semester 6\\Algos\\Project\\[TEMPLATE] ImageSegmentation\\ImageSegmentation\\Properties\\Resources.Designer.cs",
+              "DocumentMoniker": "C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\ImageSegmentation\\Properties\\Resources.Designer.cs",
               "RelativeDocumentMoniker": "ImageSegmentation\\Properties\\Resources.Designer.cs",
-              "ToolTip": "C:\\Users\\mosta\\OneDrive\\Desktop\\Semester 6\\Algos\\Project\\[TEMPLATE] ImageSegmentation\\ImageSegmentation\\Properties\\Resources.Designer.cs",
+              "ToolTip": "C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\ImageSegmentation\\Properties\\Resources.Designer.cs",
               "RelativeToolTip": "ImageSegmentation\\Properties\\Resources.Designer.cs",
               "ViewState": "AgIAAD8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-08T06:14:18.227Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-08T06:14:18.227Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "AssemblyInfo.cs",
-              "DocumentMoniker": "C:\\Users\\mosta\\OneDrive\\Desktop\\Semester 6\\Algos\\Project\\[TEMPLATE] ImageSegmentation\\ImageSegmentation\\Properties\\AssemblyInfo.cs",
+              "DocumentMoniker": "C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\ImageSegmentation\\Properties\\AssemblyInfo.cs",
               "RelativeDocumentMoniker": "ImageSegmentation\\Properties\\AssemblyInfo.cs",
-              "ToolTip": "C:\\Users\\mosta\\OneDrive\\Desktop\\Semester 6\\Algos\\Project\\[TEMPLATE] ImageSegmentation\\ImageSegmentation\\Properties\\AssemblyInfo.cs",
+              "ToolTip": "C:\\Users\\Muhammedd\\Desktop\\Final Bgd Bgd bgddddd\\Image-Segmentation\\ImageSegmentation\\Properties\\AssemblyInfo.cs",
               "RelativeToolTip": "ImageSegmentation\\Properties\\AssemblyInfo.cs",
               "ViewState": "AgIAABIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-08T06:13:55.468Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-08T06:13:55.468Z"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 1483,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{d212f56b-c48a-434c-a121-1c5d80b59b9f}"
             }
           ]
         }
