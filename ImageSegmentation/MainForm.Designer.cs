@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Security.Cryptography;
+
 namespace ImageTemplate
 {
     partial class MainForm
@@ -44,6 +48,10 @@ namespace ImageTemplate
             this.txtGaussSigma = new System.Windows.Forms.TextBox();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.lblInstructions = new System.Windows.Forms.Label();
+            this.btnMerge = new System.Windows.Forms.Button();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudMaskSize)).BeginInit();
@@ -54,28 +62,30 @@ namespace ImageTemplate
             // pictureBox1
             // 
             this.pictureBox1.Location = new System.Drawing.Point(4, 4);
-            this.pictureBox1.Margin = new System.Windows.Forms.Padding(4);
+            this.pictureBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(427, 360);
             this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.pictureBox1.TabIndex = 0;
             this.pictureBox1.TabStop = false;
+            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
             // 
             // pictureBox2
             // 
             this.pictureBox2.Location = new System.Drawing.Point(4, 4);
-            this.pictureBox2.Margin = new System.Windows.Forms.Padding(4);
+            this.pictureBox2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.pictureBox2.Name = "pictureBox2";
             this.pictureBox2.Size = new System.Drawing.Size(412, 360);
             this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.AutoSize;
             this.pictureBox2.TabIndex = 1;
             this.pictureBox2.TabStop = false;
+            this.pictureBox2.MouseClick += new System.Windows.Forms.MouseEventHandler(this.pictureBox2_Click);
             // 
             // btnOpen
             // 
             this.btnOpen.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnOpen.Location = new System.Drawing.Point(473, 513);
-            this.btnOpen.Margin = new System.Windows.Forms.Padding(4);
+            this.btnOpen.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.btnOpen.Name = "btnOpen";
             this.btnOpen.Size = new System.Drawing.Size(126, 89);
             this.btnOpen.TabIndex = 2;
@@ -109,7 +119,7 @@ namespace ImageTemplate
             // 
             this.btnGaussSmooth.Font = new System.Drawing.Font("Tahoma", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnGaussSmooth.Location = new System.Drawing.Point(628, 513);
-            this.btnGaussSmooth.Margin = new System.Windows.Forms.Padding(4);
+            this.btnGaussSmooth.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.btnGaussSmooth.Name = "btnGaussSmooth";
             this.btnGaussSmooth.Size = new System.Drawing.Size(131, 89);
             this.btnGaussSmooth.TabIndex = 5;
@@ -143,7 +153,7 @@ namespace ImageTemplate
             // 
             this.txtHeight.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtHeight.Location = new System.Drawing.Point(375, 574);
-            this.txtHeight.Margin = new System.Windows.Forms.Padding(4);
+            this.txtHeight.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.txtHeight.Name = "txtHeight";
             this.txtHeight.ReadOnly = true;
             this.txtHeight.Size = new System.Drawing.Size(75, 27);
@@ -158,7 +168,7 @@ namespace ImageTemplate
             0,
             0});
             this.nudMaskSize.Location = new System.Drawing.Point(913, 527);
-            this.nudMaskSize.Margin = new System.Windows.Forms.Padding(4);
+            this.nudMaskSize.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.nudMaskSize.Maximum = new decimal(new int[] {
             99,
             0,
@@ -182,7 +192,7 @@ namespace ImageTemplate
             // 
             this.txtWidth.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtWidth.Location = new System.Drawing.Point(375, 527);
-            this.txtWidth.Margin = new System.Windows.Forms.Padding(4);
+            this.txtWidth.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.txtWidth.Name = "txtWidth";
             this.txtWidth.ReadOnly = true;
             this.txtWidth.Size = new System.Drawing.Size(75, 27);
@@ -214,7 +224,7 @@ namespace ImageTemplate
             // 
             this.txtGaussSigma.Font = new System.Drawing.Font("Tahoma", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.txtGaussSigma.Location = new System.Drawing.Point(913, 574);
-            this.txtGaussSigma.Margin = new System.Windows.Forms.Padding(4);
+            this.txtGaussSigma.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.txtGaussSigma.Name = "txtGaussSigma";
             this.txtGaussSigma.Size = new System.Drawing.Size(75, 27);
             this.txtGaussSigma.TabIndex = 14;
@@ -227,7 +237,7 @@ namespace ImageTemplate
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.panel1.Controls.Add(this.pictureBox1);
             this.panel1.Location = new System.Drawing.Point(16, 15);
-            this.panel1.Margin = new System.Windows.Forms.Padding(4);
+            this.panel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(583, 456);
             this.panel1.TabIndex = 15;
@@ -238,17 +248,61 @@ namespace ImageTemplate
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.panel2.Controls.Add(this.pictureBox2);
             this.panel2.Location = new System.Drawing.Point(628, 15);
-            this.panel2.Margin = new System.Windows.Forms.Padding(4);
+            this.panel2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(560, 456);
             this.panel2.TabIndex = 16;
+            // 
+            // lblInstructions
+            // 
+            this.lblInstructions.AutoSize = true;
+            this.lblInstructions.Location = new System.Drawing.Point(22, 484);
+            this.lblInstructions.Name = "lblInstructions";
+            this.lblInstructions.Size = new System.Drawing.Size(151, 16);
+            this.lblInstructions.TabIndex = 5;
+            this.lblInstructions.Text = "Click segments to select";
+            this.lblInstructions.Visible = false;
+            // 
+            // btnMerge
+            // 
+            this.btnMerge.Location = new System.Drawing.Point(22, 517);
+            this.btnMerge.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.btnMerge.Name = "btnMerge";
+            this.btnMerge.Size = new System.Drawing.Size(151, 34);
+            this.btnMerge.TabIndex = 4;
+            this.btnMerge.Text = "merge selected";
+            this.btnMerge.UseVisualStyleBackColor = true;
+            this.btnMerge.Visible = false;
+            this.btnMerge.Click += new System.EventHandler(this.btnMerge_Click);
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(1022, 552);
+            this.textBox1.Multiline = true;
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(88, 30);
+            this.textBox1.TabIndex = 17;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F);
+            this.label7.Location = new System.Drawing.Point(1051, 520);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(30, 29);
+            this.label7.TabIndex = 18;
+            this.label7.Text = "K";
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1205, 615);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.lblInstructions);
             this.Controls.Add(this.panel2);
+            this.Controls.Add(this.btnMerge);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.txtGaussSigma);
             this.Controls.Add(this.label6);
@@ -262,9 +316,9 @@ namespace ImageTemplate
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btnOpen);
-            this.Margin = new System.Windows.Forms.Padding(4);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.Name = "MainForm";
-            this.Text = "Image Enctryption and Compression...";
+            this.Text = "Image Segmentation";
             this.Load += new System.EventHandler(this.MainForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
@@ -277,6 +331,8 @@ namespace ImageTemplate
             this.PerformLayout();
 
         }
+
+
 
         #endregion
 
@@ -296,6 +352,9 @@ namespace ImageTemplate
         private System.Windows.Forms.TextBox txtGaussSigma;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Button btnMerge;
+        private System.Windows.Forms.Label lblInstructions;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.Label label7;
     }
 }
-
