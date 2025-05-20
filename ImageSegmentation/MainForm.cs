@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
@@ -20,7 +21,9 @@ namespace ImageTemplate
         private DisjointSet segmentedSet;
         private int imageHeight;
         private int imageWidth;
-        private RGBPixel[,] originalImage; // Keep the original image for restoration
+        private RGBPixel[,] originalImage; 
+        Dictionary<int, int> dict;
+        int[,] finallabels;
 
         public MainForm()
         {
@@ -34,7 +37,7 @@ namespace ImageTemplate
             OpenFileDialog openFileDialog1 = new OpenFileDialog();
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                //Open the browsed image and display it
+                
                 string OpenedFilePath = openFileDialog1.FileName;
                 ImageMatrix = ImageOperations.OpenImage(OpenedFilePath);
                 originalImage = (RGBPixel[,])ImageMatrix.Clone(); 
@@ -42,8 +45,6 @@ namespace ImageTemplate
             }
             txtWidth.Text = ImageOperations.GetWidth(ImageMatrix).ToString();
             txtHeight.Text = ImageOperations.GetHeight(ImageMatrix).ToString();
-
-            //get the dimensions
             imageWidth = ImageOperations.GetWidth(ImageMatrix);
             imageHeight = ImageOperations.GetHeight(ImageMatrix);
         }
@@ -59,16 +60,11 @@ namespace ImageTemplate
             float k = float.Parse(textBox1.Text);
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
-
             var (redGraph, greenGraph, blueGraph, finalLabels) = DSConstruction.BuildGraph(height, width, Bluredimg);
-
-
             channelMSTs[0] = DSConstruction.SegmentGraph(redGraph, height, width, k);
             channelMSTs[1] = DSConstruction.SegmentGraph(greenGraph, height, width, k);
             channelMSTs[2] = DSConstruction.SegmentGraph(blueGraph, height, width, k);
-
-            var (finallabels, dict, segmentedSet) = Segmentation.CreateSegments(channelMSTs[0], channelMSTs[1], channelMSTs[2], height, width, finalLabels);
-
+             (finallabels, dict, segmentedSet) = Segmentation.CreateSegments(channelMSTs[0], channelMSTs[1], channelMSTs[2], height, width, finalLabels);
             segmentedImage = Visualization.VisualizeSegments(segmentedSet, width, height);
             stopwatch.Stop();
             long time = stopwatch.ElapsedMilliseconds;
@@ -76,6 +72,22 @@ namespace ImageTemplate
             selectedSegments.Clear();
             btnMerge.Visible = false;
             Segmentation.WriteOutputFile(finallabels, dict, "C:\\Users\\Muhammedd\\Desktop\\esht8lyb2a.txt");
+
+
+            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
+            saveFileDialog1.Filter = "bmp files (*.bmp)|*.bmp|All files (*.*)|*.*";
+            saveFileDialog1.RestoreDirectory = true;
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                if (pictureBox2.Image != null)
+                {
+                    pictureBox2.Image.Save(saveFileDialog1.FileName, ImageFormat.Bmp);
+                }
+                else
+                {
+                    MessageBox.Show("No image to save. Error arg3 shof el satr bta3 el open tany");
+                }
+            }
 
             string elapsedTimeMessage = $"\n Time: {time} ";
 

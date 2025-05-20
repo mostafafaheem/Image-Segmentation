@@ -286,7 +286,6 @@ namespace ImageTemplate
             Edge[] greenEdges = ArrayPool<Edge>.Shared.Rent(maxEdges);
             Edge[] blueEdges = ArrayPool<Edge>.Shared.Rent(maxEdges);
             int[,] finalLabels = new int[height, width];
-
             int edgeCount = 0;
 
 
@@ -381,6 +380,7 @@ namespace ImageTemplate
                 {
                     double intC1 = ds.GetInternalDiff(v1);
                     double intC2 = ds.GetInternalDiff(v2);
+
                     int sizeC1 = ds.GetSize(v1);
                     int sizeC2 = ds.GetSize(v2);
 
@@ -415,18 +415,11 @@ namespace ImageTemplate
      int width, int[,] finalLabels)
         {
             int n = height * width;
-            //int[,] finalLabels = new int[height, width];
-
-
-            //for (int y = 0; y < height; y++)
-            //    for (int x = 0; x < width; x++)
-            //        finalLabels[y, x] = -1;
             DisjointSet mergedSet = new DisjointSet(n);
-
             Dictionary<int, int> mergedComponents = new Dictionary<int, int>();
             int nextLabel = 0;
 
-            // optmize el height fe parellel for 
+            
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
