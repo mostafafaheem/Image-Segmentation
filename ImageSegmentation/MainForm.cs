@@ -71,7 +71,7 @@ namespace ImageTemplate
             ImageOperations.DisplayImage(segmentedImage, pictureBox2);
             selectedSegments.Clear();
             btnMerge.Visible = false;
-            Segmentation.WriteOutputFile(finallabels, dict, "C:\\Users\\Muhammedd\\Desktop\\esht8lyb2a.txt");
+            Segmentation.OutputWriterr(finallabels, dict, "D:\\ALgooooo\\Image-Segmentation\\OUTT.txt");
 
 
             SaveFileDialog saveFileDialog1 = new SaveFileDialog();
@@ -213,9 +213,36 @@ namespace ImageTemplate
             //MessageBox.Show("Segments merged successfully. Showing only the merged segment with original colors.");
         }
 
-
-        private void pictureBox1_Click(object sender, EventArgs e)
+        private void run_knn(object sender, EventArgs e)
         {
+            double sigma = double.Parse(txtGaussSigma.Text);
+            int maskSize = (int)nudMaskSize.Value;
+            RGBPixel[,] Bluredimg = ImageOperations.GaussianFilter1D(ImageMatrix, maskSize, sigma);
+
+
+            int height = ImageOperations.GetHeight(Bluredimg),
+                width = ImageOperations.GetWidth(Bluredimg);
+
+            DisjointSet[] channelMSTs = new DisjointSet[3];
+
+            float k = float.Parse(textBox1.Text);
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            var graph = KdTree.BuildGraph(height, width, Bluredimg);
+
+
+            channelMSTs[0] = DSConstruction.SegmentGraph(graph, height, width, k);
+
+            RGBPixel[,] displayGrid = Visualization.VisualizeSegments(channelMSTs[0], width, height);
+
+            stopwatch.Stop();
+            long time = stopwatch.ElapsedMilliseconds;
+            ImageOperations.DisplayImage(displayGrid, pictureBox2);
+
+            string elapsedTimeMessage = $"\n Time: {time} ";
+
+            MessageBox.Show(elapsedTimeMessage, "Debug Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
         }
     }
