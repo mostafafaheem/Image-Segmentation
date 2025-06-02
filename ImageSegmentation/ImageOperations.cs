@@ -28,8 +28,8 @@ namespace ImageTemplate
     {
         public double red, green, blue;
     }
-    
-  
+
+
     /// <summary>
     /// Library of static functions that deal with images
     /// </summary>
@@ -99,7 +99,7 @@ namespace ImageTemplate
 
             return Buffer;
         }
-        
+
         /// <summary>
         /// Get the height of the image 
         /// </summary>
@@ -159,13 +159,13 @@ namespace ImageTemplate
         }
 
 
-       /// <summary>
-       /// Apply Gaussian smoothing filter to enhance the edge detection 
-       /// </summary>
-       /// <param name="ImageMatrix">Colored image matrix</param>
-       /// <param name="filterSize">Gaussian mask size</param>
-       /// <param name="sigma">Gaussian sigma</param>
-       /// <returns>smoothed color image</returns>
+        /// <summary>
+        /// Apply Gaussian smoothing filter to enhance the edge detection 
+        /// </summary>
+        /// <param name="ImageMatrix">Colored image matrix</param>
+        /// <param name="filterSize">Gaussian mask size</param>
+        /// <param name="sigma">Gaussian sigma</param>
+        /// <returns>smoothed color image</returns>
         public static RGBPixel[,] GaussianFilter1D(RGBPixel[,] ImageMatrix, int filterSize, double sigma)
         {
             int Height = GetHeight(ImageMatrix);
@@ -174,7 +174,7 @@ namespace ImageTemplate
             RGBPixelD[,] VerFiltered = new RGBPixelD[Height, Width];
             RGBPixel[,] Filtered = new RGBPixel[Height, Width];
 
-           
+
             // Create Filter in Spatial Domain:
             //=================================
             //make the filter ODD size
@@ -255,46 +255,251 @@ namespace ImageTemplate
 
     public struct Edge
     {
-        public int v1;
-        public int v2;
+        public int vertex1;
+        public int vertex2;
         public double weight;
 
-        public Edge(int v1, int v2, double weight)
+        public Edge(int vertex1, int vertex2, double weight)
         {
-            this.v1 = v1;
-            this.v2 = v2;
+            this.vertex1 = vertex1;
+            this.vertex2 = vertex2;
             this.weight = weight;
+        }
+    }
+
+    public class KdTree
+    {
+        public List<double> Point;
+        public KdTree Left;
+        public KdTree Right;
+
+        public KdTree(List<double> pt)
+        {
+            Point = new List<double>(pt);
+            Left = null;
+            Right = null;
+        }
+
+        public static KdTree Build(List<List<double>> points, int l, int r, int depth = 0)
+        {
+            if (l > r) return null;
+
+            int axis = depth % 5;
+            int mid = l + (r - l) / 2;
+
+            QuickSelect(points, l, r, mid, axis);
+
+            KdTree node = new KdTree(points[mid]);
+            node.Left = Build(points, l, mid - 1, depth + 1);
+            node.Right = Build(points, mid + 1, r, depth + 1);
+            return node;
+        }
+
+        private static void QuickSelect(List<List<double>> points, int l, int r, int k, int axis)
+        {
+            Random rand = new Random();
+
+            while (l < r)
+            {
+                int pivotIndex = rand.Next(l, r + 1);
+                int pivotNewIndex = HoarePartition(points, l, r, pivotIndex, axis);
+
+                if (k <= pivotNewIndex)
+                {
+                    r = pivotNewIndex;
+                }
+                else
+                {
+                    l = pivotNewIndex + 1;
+                }
+            }
+        }
+
+        private static int HoarePartition(List<List<double>> points, int l, int r, int pivotIndex, int axis)
+        {
+            var pivotValue = points[pivotIndex][axis];
+            Swap(points, pivotIndex, l);
+
+            int i = l - 1;
+            int j = r + 1;
+
+            while (true)
+            {
+                do { i++; } while (points[i][axis] < pivotValue);
+                do { j--; } while (points[j][axis] > pivotValue);
+
+                if (i >= j)
+                    return j;
+
+                Swap(points, i, j);
+            }
+        }
+
+        private static void Swap(List<List<double>> points, int i, int j)
+        {
+            var tmp = points[i];
+            points[i] = points[j];
+            points[j] = tmp;
+        }
+
+        public static double GetRGBDist(List<double> a, List<double> b)
+        {
+            double dist = 0;
+            for (int i = 0; i < 5; i++)
+            {
+                dist += Math.Pow(a[i] - b[i], 2);
+            }
+            return Math.Sqrt(dist);
+        }
+
+        public void KNearestANN(List<double> target, int k, int depth, SortedSet<(double, List<double>)> st, int width)
+        {
+            if (this == null) return;
+
+            double dist = GetRGBDist(Point, target);
+            st.Add((dist, Point));
+
+            if (st.Count > k)
+            {
+                st.Remove(st.Max);
+            }
+
+            int axis = depth % 5;
+            double diff = target[axis] - Point[axis];
+
+            KdTree first = diff < 0 ? Left : Right;
+            KdTree second = diff < 0 ? Right : Left;
+
+            first?.KNearestANN(target, k, depth + 1, st, width);
+
+            if (st.Count < k)
+            {
+                second?.KNearestANN(target, k, depth + 1, st, width);
+            }
+        }
+
+        public List<List<double>> KNearestSearchANN(List<double> target, int k, int width)
+        {
+            var st = new SortedSet<(double, List<double>)>(Comparer<(double, List<double>)>.Create((a, b) =>
+            {
+                int cmp = a.Item1.CompareTo(b.Item1);
+                if (cmp != 0) return cmp;
+                for (int i = 0; i < a.Item2.Count; i++)
+                {
+                    cmp = a.Item2[i].CompareTo(b.Item2[i]);
+                    if (cmp != 0) return cmp;
+                }
+                return 0;
+            }));
+
+            KNearestANN(target, k, 0, st, width);
+
+            List<List<double>> result = new List<List<double>>();
+            foreach (var p in st)
+            {
+                result.Add(p.Item2);
+            }
+            return result;
+        }
+
+        public static List<Edge> BuildGraph(int height, int width, RGBPixel[,] imageMatrix)
+        {
+            int how = 6;
+            int maxEdges = height * width * (how + 3);
+
+            Edge[] edges = ArrayPool<Edge>.Shared.Rent(maxEdges);
+
+            List<List<double>> allPixels = new List<List<double>>();
+            for (int i = 0; i < height; i++)
+            {
+                for (int j = 0; j < width; j++)
+                {
+                    RGBPixel current = imageMatrix[i, j];
+
+                    List<double> pixel = new List<double> { i, j, current.red, current.green, current.blue };
+                    allPixels.Add(pixel);
+                }
+            }
+
+            HashSet<(int, int)> st = new HashSet<(int, int)>();
+
+            int edgeCount = 0;
+
+            KdTree kdTree = KdTree.Build(allPixels, 0, allPixels.Count - 1);
+
+
+            for (int i = 0; i < height; i++)
+            {
+                for (int j = 0; j < width; j++)
+                {
+                    int index1D = i * width + j;
+                    RGBPixel current = imageMatrix[i, j];
+
+                    var target = new List<double> { i, j, current.red, current.green, current.blue };
+
+                    List<List<double>> kNearestNeighbors = kdTree.KNearestSearchANN(target, how, width);
+
+                    foreach (var neighbor in kNearestNeighbors)
+                    {
+                        int ni = (int)neighbor[0];
+                        int nj = (int)neighbor[1];
+
+                        if (ni == i && nj == j) continue;
+
+                        int neighborIndex = ni * width + nj;
+
+                        int idx1 = Math.Min(index1D, neighborIndex);
+                        int idx2 = Math.Max(index1D, neighborIndex);
+
+
+                        if (st.Contains((idx1, idx2))) continue;
+                        st.Add((idx1, idx2));
+
+                        RGBPixel np = imageMatrix[ni, nj];
+
+                        List<double> curColor = new List<double> { i, j, current.red, current.green, current.blue };
+                        List<double> neighborColor = new List<double> { ni, nj, np.red, np.green, np.blue };
+
+                        double weight = KdTree.GetRGBDist(curColor, neighborColor);
+
+                        edges[edgeCount] = new Edge(index1D, neighborIndex, weight);
+                        edgeCount++;
+                    }
+                }
+            }
+
+            List<Edge> g = new List<Edge>(edgeCount);
+
+            for (int i = 0; i < edgeCount; i++)
+            {
+                g.Add(edges[i]);
+            }
+
+            ArrayPool<Edge>.Shared.Return(edges);
+
+            return g;
         }
     }
 
     public class DSConstruction
     {
-        /// <summary>
-        /// Construct an eight-neighbour graph for the given image and the selected channel 
-        /// </summary>
-        /// <param name="ImageMatrix">Colored image matrix</param>
-        /// <param name="colour">Gaussian mask size</param>
-        /// <returns>edge list</returns>
-        public static (List<Edge> redGraph, List<Edge> greenGraph, List<Edge> blueGraph, int[,] finalLabels) BuildGraph(int height, int width, RGBPixel[,] imageMatrix)
+        public static (List<Edge> redgraph, List<Edge> greengraph, List<Edge> bluegraph, int[,] finalLabels) BuildGraph(int height, int width, RGBPixel[,] imageMatrix)
         {
 
-
-            int maxEdges = height * width * 4;
-
-
-            Edge[] redEdges = ArrayPool<Edge>.Shared.Rent(maxEdges);
-            Edge[] greenEdges = ArrayPool<Edge>.Shared.Rent(maxEdges);
-            Edge[] blueEdges = ArrayPool<Edge>.Shared.Rent(maxEdges);
+            //fe redudunt keda keda 
+            int edgecounter = 0;
+            int maximumedges = height * width * 4;
+            Edge[] rededges = ArrayPool<Edge>.Shared.Rent(maximumedges);
+            Edge[] greenedges = ArrayPool<Edge>.Shared.Rent(maximumedges);
+            Edge[] blueedges = ArrayPool<Edge>.Shared.Rent(maximumedges);
             int[,] finalLabels = new int[height, width];
-            int edgeCount = 0;
-
 
 
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    int v1 = y * width + x;
+                    int vertex1 = y * width + x;
                     RGBPixel current = imageMatrix[y, x];
                     finalLabels[y, x] = -1;
 
@@ -302,27 +507,21 @@ namespace ImageTemplate
                     {
                         for (int dx = -1; dx <= 1; dx++)
                         {
-                            if (dy == 0 && dx == 0)
+                            int neighbourx = x + dx;
+                            int neighboury = y + dy;
+                            if (neighbourx < 0 || neighbourx >= width || neighboury < 0 || neighboury >= height || (dy == 0 && dx == 0))
                                 continue;
-
-                            int nx = x + dx;
-                            int ny = y + dy;
-
-                            if (nx < 0 || nx >= width || ny < 0 || ny >= height)
-                                continue;
-
-                            int v2 = ny * width + nx;
-                            if (v1 < v2)
+                            int vertex2 = neighboury * width + neighbourx;
+                            if (vertex1 < vertex2)
                             {
-                                RGBPixel neighbor = imageMatrix[ny, nx];
-                                double weightR = Math.Abs(current.red - neighbor.red);
-                                double weightG = Math.Abs(current.green - neighbor.green);
-                                double weightB = Math.Abs(current.blue - neighbor.blue);
-
-                                redEdges[edgeCount] = new Edge(v1, v2, weightR);
-                                greenEdges[edgeCount] = new Edge(v1, v2, weightG);
-                                blueEdges[edgeCount] = new Edge(v1, v2, weightB);
-                                edgeCount++;
+                                RGBPixel neighbor = imageMatrix[neighboury, neighbourx];
+                                double weightRed = Math.Abs(current.red - neighbor.red);
+                                double weightGreen = Math.Abs(current.green - neighbor.green);
+                                double weightBlue = Math.Abs(current.blue - neighbor.blue);
+                                rededges[edgecounter] = new Edge(vertex1, vertex2, weightRed);
+                                greenedges[edgecounter] = new Edge(vertex1, vertex2, weightGreen);
+                                blueedges[edgecounter] = new Edge(vertex1, vertex2, weightBlue);
+                                edgecounter++;
                             }
                         }
                     }
@@ -330,70 +529,54 @@ namespace ImageTemplate
             }
 
 
-            List<Edge> redGraph = new List<Edge>(edgeCount);
-            List<Edge> greenGraph = new List<Edge>(edgeCount);
-            List<Edge> blueGraph = new List<Edge>(edgeCount);
+            List<Edge> redgraph = new List<Edge>(edgecounter);
+            List<Edge> greengraph = new List<Edge>(edgecounter);
+            List<Edge> bluegraph = new List<Edge>(edgecounter);
 
-            for (int i = 0; i < edgeCount; i++)
+            for (int i = 0; i < edgecounter; i++)
             {
-                redGraph.Add(redEdges[i]);
-                greenGraph.Add(greenEdges[i]);
-                blueGraph.Add(blueEdges[i]);
+                redgraph.Add(rededges[i]);
+                greengraph.Add(greenedges[i]);
+                bluegraph.Add(blueedges[i]);
             }
-            ArrayPool<Edge>.Shared.Return(redEdges);
-            ArrayPool<Edge>.Shared.Return(greenEdges);
-            ArrayPool<Edge>.Shared.Return(blueEdges);
-            return (redGraph, greenGraph, blueGraph, finalLabels);
-
-
-
-
+            ArrayPool<Edge>.Shared.Return(rededges);
+            ArrayPool<Edge>.Shared.Return(greenedges);
+            ArrayPool<Edge>.Shared.Return(blueedges);
+            return (redgraph, greengraph, bluegraph, finalLabels);
 
         }
 
-        /// <summary>
-        /// Construct Minimum Spanning Tree while performing segmentation, each image segment has its own tree
-        /// </summary>
-        /// <param name="allEdges">Original graph edge list</param>
-        /// <param name="numVertices">Total number of pixels</param>
-        /// <param name="k">Threshold constant</param>
-        /// <returns>minimum Spanning Tree</returns>
         public static DisjointSet SegmentGraph(List<Edge> graph, int height, int width, double k)
         {
-            int n = height * width;
-            DisjointSet ds = new DisjointSet(n);
-
-
+            int WH = height * width;
+            DisjointSet ds = new DisjointSet(WH);
             graph.Sort((e1, e2) => e1.weight.CompareTo(e2.weight));
-
 
             foreach (var edge in graph)
             {
-                int v1 = edge.v1;
-                int v2 = edge.v2;
+                int vertex1 = edge.vertex1;
+                int vertex2 = edge.vertex2;
                 double w = edge.weight;
 
-                int root1 = ds.Find(v1);
-                int root2 = ds.Find(v2);
-
+                int root1 = ds.Find(vertex1);
+                int root2 = ds.Find(vertex2);
                 if (root1 != root2)
                 {
-                    double intC1 = ds.GetInternalDiff(v1);
-                    double intC2 = ds.GetInternalDiff(v2);
+                    double intensity1 = ds.GetInternalDiff(vertex1);
+                    double intensity2 = ds.GetInternalDiff(vertex2);
 
-                    int sizeC1 = ds.GetSize(v1);
-                    int sizeC2 = ds.GetSize(v2);
+                    int sizeC1 = ds.GetSize(vertex1);
+                    int sizeC2 = ds.GetSize(vertex2);
 
-                    double mInt = Math.Min(intC1 + k / (double)sizeC1, intC2 + k / (double)sizeC2);
+                    double mInt = Math.Min(intensity1 + k / (double)sizeC1, intensity2 + k / (double)sizeC2);
 
                     if (w <= mInt)
                     {
-                        ds.Union(v1, v2, w);
+                        ds.Union(vertex1, vertex2, w);
 
                     }
                 }
             }
-
 
 
             return ds;
@@ -402,37 +585,28 @@ namespace ImageTemplate
 
     public class Segmentation
     {
-        /// <summary>
-        /// Join all three channels by checking for pixels in common segments
-        /// </summary>
-        /// <param name="channelSets">Array of MSTs, one for each colour channel</param>
-        /// <param name="numVertices">Total number of pixels</param>
-        /// <returns>final segmented MST</returns>
-        public static (int[,], Dictionary<int, int>, DisjointSet) CreateSegments(DisjointSet redSegment,
-     DisjointSet greenSegment,
-     DisjointSet blueSegment,
+        public static (int[,], Dictionary<int, int>, DisjointSet) CreateSegments(DisjointSet redSeg,
+     DisjointSet greenSeg,
+     DisjointSet blueSeg,
      int height,
      int width, int[,] finalLabels)
         {
-            int n = height * width;
-            DisjointSet mergedSet = new DisjointSet(n);
-            Dictionary<int, int> mergedComponents = new Dictionary<int, int>();
-            int nextLabel = 0;
+            int WH = height * width;
+            DisjointSet mergedSet = new DisjointSet(WH);
+            Dictionary<int, int> Mergednum = new Dictionary<int, int>();
+            int labelID = 0;
 
-            
+
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    int pixelIndex = y * width + x;
-
-
                     if (finalLabels[y, x] != -1)
                         continue;
+                    int pixelIndex = y * width + x;
 
-
-                    finalLabels[y, x] = nextLabel;
-                    mergedComponents[nextLabel] = 1;
+                    finalLabels[y, x] = labelID;
+                    Mergednum[labelID] = 1;
 
 
                     Queue<(int, int)> queue = new Queue<(int, int)>();
@@ -448,51 +622,50 @@ namespace ImageTemplate
                         {
                             for (int dx = -1; dx <= 1; dx++)
                             {
-                                if (dx == 0 && dy == 0)
+
+
+                                int neighbourx = curX + dx;
+                                int neighboury = curY + dy;
+
+
+                                if (neighbourx < 0 || neighboury < 0 || neighbourx >= width || neighboury >= height || finalLabels[neighboury, neighbourx] != -1 || (dx == 0 && dy == 0))
                                     continue;
 
-                                int nx = curX + dx;
-                                int ny = curY + dy;
+                                int neighborIdx = neighboury * width + neighbourx;
 
 
-                                if (nx < 0 || ny < 0 || nx >= width || ny >= height || finalLabels[ny, nx] != -1)
-                                    continue;
-
-                                int neighborIdx = ny * width + nx;
-
-
-                                bool sameRed = redSegment.Find(curIdx) == redSegment.Find(neighborIdx);
-                                bool sameGreen = greenSegment.Find(curIdx) == greenSegment.Find(neighborIdx);
-                                bool sameBlue = blueSegment.Find(curIdx) == blueSegment.Find(neighborIdx);
+                                bool RedIntersect = redSeg.Find(curIdx) == redSeg.Find(neighborIdx);
+                                bool GreenIntersect = greenSeg.Find(curIdx) == greenSeg.Find(neighborIdx);
+                                bool BlueIntersect = blueSeg.Find(curIdx) == blueSeg.Find(neighborIdx);
 
 
-                                if (sameRed && sameGreen && sameBlue)
+                                if (RedIntersect && GreenIntersect && BlueIntersect)
                                 {
-                                    finalLabels[ny, nx] = nextLabel;
-                                    mergedComponents[nextLabel]++;
-                                    queue.Enqueue((nx, ny));
+                                    finalLabels[neighboury, neighbourx] = labelID;
+                                    Mergednum[labelID]++;
+                                    queue.Enqueue((neighbourx, neighboury));
                                     mergedSet.Union(curIdx, neighborIdx, 0.0);
                                 }
                             }
                         }
                     }
 
-                    nextLabel++;
+                    labelID++;
                 }
             }
 
-            return (finalLabels, mergedComponents, mergedSet);
+            return (finalLabels, Mergednum, mergedSet);
         }
 
-        public static void WriteOutputFile(int[,] finalLabels, Dictionary<int, int> regionSizes, string outputPath)
+        public static void OutputWriterr(int[,] finalLabels, Dictionary<int, int> regionSizes, string outputPath)
         {
             var sortedSizes = regionSizes.Values.OrderByDescending(size => size).ToList();
             using (var writer = new System.IO.StreamWriter(outputPath))
             {
-                writer.WriteLine(sortedSizes.Count); // Num
+                writer.WriteLine(sortedSizes.Count);
                 foreach (int size in sortedSizes)
                 {
-                    writer.WriteLine(size); // Size of each segment
+                    writer.WriteLine(size);
                 }
             }
         }
@@ -501,14 +674,6 @@ namespace ImageTemplate
     }
     public class Visualization
     {
-
-        /// <summary>
-        /// Turns the segmented MST into a pixel grid with segments labelled in different colours randomly
-        /// </summary>
-        /// <param name="segmentSet">Colored image matrix</param>
-        /// <param name="width">Image width</param>
-        /// <param name="height">Image height</param>
-        /// <returns>segment labelled image</returns>
         public static RGBPixel[,] VisualizeSegments(DisjointSet segmentSet, int width, int height)
         {
             RGBPixel[,] result = new RGBPixel[height, width];
@@ -542,7 +707,7 @@ namespace ImageTemplate
             return result;
         }
 
-        
+
     }
 
     public class DisjointSet
@@ -624,10 +789,6 @@ namespace ImageTemplate
             return internalDiff[Find(u)];
         }
 
-        /// <summary>
-        /// Calculates the total number of sets 
-        /// </summary>
-        /// <returns>total number of sets</returns>
         public int GetNumSets()
         {
             int count = 0;
